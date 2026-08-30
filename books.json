@@ -8,6 +8,10 @@
     {
       "name": "素食",
       "folder": "AI繪本-素食(電子書)"
+    },
+    {
+      "name": "從扶困到育才",
+      "folder": "AI繪本-從扶困到育才"
     }
   ],
   "books": [
@@ -229,6 +233,39 @@
       "pages": 34,
       "path": "AI繪本-素食(電子書)/第七組_謝謝你哦！我的身體_eng-th.html",
       "cover": "covers/veg-g7-b.webp",
+      "hidden": false
+    },
+    {
+      "id": "bk-260830192038-621",
+      "title": "清邁慈中的誕生之路",
+      "group": "",
+      "lang": "泰中",
+      "collection": "從扶困到育才",
+      "pages": 66,
+      "path": "AI繪本-從扶困到育才/從扶困到育才-清邁慈中的誕生之路(泰中).html",
+      "cover": "covers/bk-260830192038-621.webp",
+      "hidden": false
+    },
+    {
+      "id": "bk-260830192048-363",
+      "title": "清邁慈中的誕生之路",
+      "group": "",
+      "lang": "泰英",
+      "collection": "從扶困到育才",
+      "pages": 66,
+      "path": "AI繪本-從扶困到育才/從扶困到育才-清邁慈中的誕生之路(泰英).html",
+      "cover": "covers/bk-260830192048-363.webp",
+      "hidden": false
+    },
+    {
+      "id": "bk-260830192100-454",
+      "title": "清邁慈中的誕生之路",
+      "group": "",
+      "lang": "泰英・灰階",
+      "collection": "從扶困到育才",
+      "pages": 66,
+      "path": "AI繪本-從扶困到育才/從扶困到育才-清邁慈中的誕生之路(泰英)灰.html",
+      "cover": "covers/bk-260830192100-454.webp",
       "hidden": false
     }
   ]
