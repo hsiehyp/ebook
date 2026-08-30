@@ -820,7 +820,7 @@
         '直接拖曳封面就能調整同一系列裡的前後順序（也可以用 ← → 按鈕）。' +
         '改完記得匯出 <code>books.json</code>。</div></div>');
     }
-    if(dirty){
+    if(manage && dirty){          /* 這條只給管理者看，前台不出現 */
       var news = books.filter(function(b){ return b.note === "new"; });
       var extra = news.length
         ? '<br>另外，新增的書本身也要上傳到 GitHub：' +
