@@ -1,0 +1,1309 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>AI 繪本電子書書架</title>
+<meta name="description" content="AI 繪本電子書書架 — 點選封面即可翻閱">
+<style>
+  *,*::before,*::after{box-sizing:border-box}
+  [hidden]{display:none!important}
+
+  :root{
+    --ground:#d3d9e2; --ground-2:#c2cad6;
+    --chrome:#ffffff; --chrome-2:#f4f6fa;
+    --line:#c7d0dc; --text:#141922; --muted:#5a6472;
+    --accent:#e0521c; --accent-ink:#ffffff;
+    --danger:#c62828;
+    --hit:rgba(20,25,34,.07);
+    --shadow:0 10px 34px rgba(20,28,44,.16);
+    --shadow-lift:0 20px 46px rgba(20,28,44,.26);
+    --r:14px; --ease:cubic-bezier(.22,.61,.36,1);
+  }
+  @media (prefers-color-scheme:dark){
+    :root:not([data-theme="light"]){
+      --ground:#12151c; --ground-2:#0b0d12;
+      --chrome:#1b212c; --chrome-2:#222a37;
+      --line:#2b3442; --text:#e8edf5; --muted:#8a94a6;
+      --danger:#ef6b6b;
+      --hit:rgba(255,255,255,.09);
+      --shadow:0 14px 40px rgba(0,0,0,.5);
+      --shadow-lift:0 22px 52px rgba(0,0,0,.62);
+    }
+  }
+  :root[data-theme="dark"]{
+    --ground:#12151c; --ground-2:#0b0d12;
+    --chrome:#1b212c; --chrome-2:#222a37;
+    --line:#2b3442; --text:#e8edf5; --muted:#8a94a6;
+    --danger:#ef6b6b;
+    --hit:rgba(255,255,255,.09);
+    --shadow:0 14px 40px rgba(0,0,0,.5);
+    --shadow-lift:0 22px 52px rgba(0,0,0,.62);
+  }
+
+  html,body{margin:0}
+  body{
+    min-height:100%;
+    font-family:"PingFang TC","Microsoft JhengHei","Noto Sans TC","Hiragino Sans",
+                "Leelawadee UI","Thonburi","Noto Sans Thai",
+                "Segoe UI Variable Text","Segoe UI",-apple-system,ui-sans-serif,sans-serif;
+    background:radial-gradient(130% 100% at 50% 0%, var(--ground) 0%, var(--ground-2) 100%) fixed;
+    color:var(--text);
+    -webkit-tap-highlight-color:transparent;
+  }
+  button,input,select{font:inherit;color:inherit}
+  :focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+  /* ---------------- shell ---------------- */
+  .wrap{max-width:1180px;margin:0 auto;padding:26px 20px 90px}
+
+  header.top{display:flex;flex-wrap:wrap;align-items:center;gap:12px;margin-bottom:6px}
+  .brand{display:flex;align-items:center;gap:12px;margin-right:auto}
+  .mark{
+    width:42px;height:42px;border-radius:12px;flex:none;
+    background:linear-gradient(150deg,var(--accent),#f08a3c);
+    display:grid;place-items:center;color:#fff;font-size:22px;
+    box-shadow:0 6px 18px rgba(224,82,28,.35);
+  }
+  h1{font-size:21px;line-height:1.25;margin:0;letter-spacing:.01em}
+  .sub{font-size:13px;color:var(--muted);margin-top:2px}
+
+  .btn{
+    display:inline-flex;align-items:center;gap:6px;
+    background:var(--chrome);border:1px solid var(--line);border-radius:11px;
+    padding:8px 13px;font-size:14px;cursor:pointer;
+    box-shadow:0 1px 2px rgba(20,28,44,.06);
+    transition:background .15s var(--ease), transform .12s var(--ease), border-color .15s;
+  }
+  .btn:hover{background:var(--chrome-2)}
+  .btn:active{transform:translateY(1px)}
+  .btn.primary{background:var(--accent);border-color:transparent;color:var(--accent-ink);
+               box-shadow:0 6px 16px rgba(224,82,28,.3)}
+  .btn.primary:hover{filter:brightness(1.06)}
+  .btn.ghost{background:transparent;box-shadow:none}
+  .btn[aria-pressed="true"]{background:var(--accent);border-color:transparent;color:var(--accent-ink)}
+
+  /* ---------------- toolbar ---------------- */
+  .toolbar{
+    display:flex;flex-wrap:wrap;gap:10px;align-items:center;
+    margin:18px 0 6px;padding:10px;border-radius:16px;
+    background:var(--chrome);border:1px solid var(--line);box-shadow:var(--shadow)
+  }
+  .chips{display:flex;flex-wrap:wrap;gap:6px;margin-right:auto}
+  .chip{
+    border:1px solid var(--line);background:transparent;border-radius:999px;
+    padding:6px 13px;font-size:13.5px;cursor:pointer;transition:.15s var(--ease)
+  }
+  .chip:hover{background:var(--hit)}
+  .chip[aria-pressed="true"]{background:var(--text);color:var(--chrome);border-color:transparent}
+  .search{
+    display:flex;align-items:center;gap:7px;border:1px solid var(--line);
+    border-radius:11px;padding:6px 11px;background:var(--chrome-2)
+  }
+  .search input{border:0;background:transparent;outline:0;width:150px;font-size:14px}
+
+  .notice{
+    margin:14px 0 0;padding:11px 14px;border-radius:13px;font-size:13.5px;line-height:1.6;
+    border:1px solid var(--line);background:var(--chrome);box-shadow:var(--shadow);
+    display:flex;gap:10px;align-items:flex-start
+  }
+  .notice.warn{border-color:color-mix(in srgb,var(--accent) 45%,var(--line));
+               background:color-mix(in srgb,var(--accent) 8%,var(--chrome))}
+  .notice b{font-weight:650}
+  .notice .grow{flex:1;min-width:0}
+  code{
+    font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:12.5px;
+    background:var(--hit);padding:1px 5px;border-radius:5px;word-break:break-all
+  }
+
+  /* ---------------- shelf ---------------- */
+  section.shelf{margin-top:30px}
+  .shelf h2{
+    font-size:16px;margin:0 0 14px;display:flex;align-items:baseline;gap:10px;
+    padding-bottom:9px;border-bottom:1px solid var(--line)
+  }
+  .shelf h2 .n{font-size:12.5px;color:var(--muted);font-weight:400}
+  .shelf h2 .icon{align-self:center;width:26px;height:26px;font-size:12px}
+  .shelf h2 [data-editcol]{margin-left:auto}
+
+  .grid{
+    display:grid;gap:22px 18px;
+    grid-template-columns:repeat(auto-fill,minmax(172px,1fr))
+  }
+  @media (max-width:520px){
+    .grid{grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:18px 14px}
+  }
+
+  .card{position:relative;display:flex;flex-direction:column;gap:9px}
+  .card a.hit{text-decoration:none;color:inherit;display:block;border-radius:11px}
+  .thumb{
+    position:relative;aspect-ratio:.706;border-radius:11px;overflow:hidden;
+    background:var(--chrome-2);border:1px solid var(--line);
+    box-shadow:var(--shadow);transition:transform .22s var(--ease), box-shadow .22s var(--ease)
+  }
+  .thumb::after{
+    content:"";position:absolute;inset:0;border-radius:11px;pointer-events:none;
+    background:linear-gradient(90deg,rgba(0,0,0,.20) 0 4px,rgba(0,0,0,.05) 4px 11px,transparent 11px)
+  }
+  .card a.hit:hover .thumb,.card a.hit:focus-visible .thumb{
+    transform:translateY(-5px) scale(1.014);box-shadow:var(--shadow-lift)
+  }
+  .thumb img{width:100%;height:100%;object-fit:cover;display:block}
+  .thumb .noimg{
+    width:100%;height:100%;display:grid;place-items:center;color:var(--muted);
+    font-size:12px;text-align:center;padding:10px
+  }
+  .pages{
+    position:absolute;right:7px;bottom:7px;z-index:2;
+    background:rgba(10,14,20,.66);color:#fff;font-size:11px;
+    padding:2px 7px;border-radius:999px
+  }
+  .meta{display:flex;flex-direction:column;gap:5px;min-width:0}
+  .t{font-size:14.5px;font-weight:650;line-height:1.35;word-break:break-word;min-height:2.7em;
+     display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  .tags{display:flex;flex-wrap:wrap;gap:5px}
+  .tag{
+    font-size:11.5px;color:var(--muted);border:1px solid var(--line);
+    border-radius:999px;padding:1px 8px;white-space:nowrap
+  }
+  .tag.lang{color:var(--accent);border-color:color-mix(in srgb,var(--accent) 45%,var(--line))}
+  .tag.off{color:var(--danger);border-color:color-mix(in srgb,var(--danger) 45%,var(--line))}
+  .card.off .thumb{filter:grayscale(.65);opacity:.42}
+  .card.off .t{color:var(--muted)}
+
+  /* manage affordances */
+  .tools{display:none;gap:6px;flex-wrap:wrap}
+  .icon{
+    border:1px solid var(--line);background:var(--chrome);border-radius:9px;
+    width:30px;height:30px;display:grid;place-items:center;cursor:pointer;font-size:14px;
+    line-height:1;padding:0
+  }
+  .icon:hover{background:var(--chrome-2)}
+  .icon.del{color:var(--danger)}
+  .icon:disabled{opacity:.35;cursor:default}
+  body.manage .tools{display:flex}
+  body.manage .card{cursor:grab}
+  body.manage .card:active{cursor:grabbing}
+  .card.dragging{opacity:.35}
+  .card.dropL::before,.card.dropR::after{
+    content:"";position:absolute;top:0;bottom:0;width:3px;border-radius:3px;z-index:3;
+    background:var(--accent);
+    box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 22%,transparent)
+  }
+  .card.dropL::before{left:-10px}
+  .card.dropR::after{right:-10px}
+
+  .addcard{
+    border:2px dashed var(--line);border-radius:11px;aspect-ratio:.706;
+    display:none;place-items:center;text-align:center;color:var(--muted);
+    background:transparent;cursor:pointer;font-size:13.5px;line-height:1.6;padding:12px;
+    transition:.15s var(--ease);width:100%
+  }
+  body.manage .addcard{display:grid}
+  .addcard:hover{border-color:var(--accent);color:var(--accent);background:var(--hit)}
+  .addcard .plus{font-size:26px;display:block;margin-bottom:4px}
+
+  .empty{padding:50px 10px;text-align:center;color:var(--muted);font-size:14px}
+
+  /* ---------------- dialog ---------------- */
+  dialog{
+    border:1px solid var(--line);border-radius:18px;padding:0;max-width:520px;
+    width:calc(100% - 32px);background:var(--chrome);color:var(--text);
+    box-shadow:0 30px 80px rgba(0,0,0,.4)
+  }
+  dialog::backdrop{background:rgba(8,11,16,.55)}
+  .dlg-h{padding:16px 20px 0;font-size:16.5px;font-weight:650}
+  .dlg-b{padding:14px 20px;display:flex;flex-direction:column;gap:13px}
+  .dlg-f{
+    padding:13px 20px;display:flex;gap:9px;justify-content:flex-end;
+    border-top:1px solid var(--line);background:var(--chrome-2);
+    border-radius:0 0 18px 18px;flex-wrap:wrap
+  }
+  .field{display:flex;flex-direction:column;gap:5px}
+  .field label{font-size:12.5px;color:var(--muted)}
+  .field input,.field select{
+    border:1px solid var(--line);border-radius:10px;padding:9px 11px;
+    background:var(--chrome-2);outline:0;width:100%
+  }
+  .field input:focus,.field select:focus{border-color:var(--accent)}
+  .field input[readonly]{background:var(--hit);color:var(--muted)}
+  .field .row{display:flex;gap:6px;align-items:stretch}
+  .field .row .btn{padding:0 12px}
+  .lbl{display:flex;align-items:center;justify-content:space-between;gap:8px}
+  .lbl .opt{display:flex;align-items:center;gap:4px;cursor:pointer}
+  .lbl .opt input{width:auto}
+  .err{color:var(--danger)}
+  .hint{font-size:12px;color:var(--muted);line-height:1.6}
+  .drop{
+    border:2px dashed var(--line);border-radius:13px;padding:18px;text-align:center;
+    color:var(--muted);font-size:13.5px;cursor:pointer;line-height:1.7
+  }
+  .drop.over,.drop:hover{border-color:var(--accent);color:var(--accent)}
+  .drop.filled{border-style:solid;color:var(--text)}
+  .prev{display:flex;gap:12px;align-items:center;text-align:left}
+  .prev img{width:58px;border-radius:7px;box-shadow:var(--shadow);flex:none}
+  .grow{flex:1;min-width:0}
+  .small{font-size:12px;color:var(--muted);word-break:break-all}
+
+  .toast{
+    position:fixed;left:50%;bottom:26px;transform:translate(-50%,20px);
+    background:var(--text);color:var(--chrome);padding:11px 18px;border-radius:12px;
+    font-size:14px;box-shadow:var(--shadow-lift);opacity:0;pointer-events:none;
+    transition:.25s var(--ease);z-index:60;max-width:90vw;text-align:center
+  }
+  .toast.on{opacity:1;transform:translate(-50%,0)}
+
+  footer{margin-top:46px;padding-top:18px;border-top:1px solid var(--line);
+         font-size:12.5px;color:var(--muted);line-height:1.8}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <div class="brand">
+      <div class="mark" aria-hidden="true">📖</div>
+      <div>
+        <h1>AI 繪本電子書書架</h1>
+        <div class="sub">點選封面即可開始翻閱</div>
+      </div>
+    </div>
+    <button class="btn" id="themeBtn" title="切換深淺色">🌓 外觀</button>
+    <button class="btn" id="manageBtn" aria-pressed="false">🛠 管理</button>
+  </header>
+
+  <div class="toolbar">
+    <div class="chips" id="chips"></div>
+    <div class="search">
+      <span aria-hidden="true">🔍</span>
+      <input id="q" type="search" placeholder="搜尋書名" aria-label="搜尋書名">
+    </div>
+    <button class="btn primary" id="addBtn" hidden>＋ 新增電子書</button>
+    <button class="btn" id="colBtn" hidden>＋ 新增類別</button>
+    <button class="btn" id="checkBtn" hidden>✓ 檢查路徑</button>
+    <button class="btn" id="exportBtn" hidden>⬇ 匯出 books.json</button>
+    <button class="btn ghost" id="resetBtn" hidden>↺ 捨棄變更</button>
+  </div>
+
+  <div id="banners"></div>
+  <div id="shelves"></div>
+
+  <footer>
+    共 <b id="total">0</b> 本電子書 · 每本書的封面就是該書的第一頁 · 清單資料來自 <code>books.json</code>
+  </footer>
+</div>
+
+<dialog id="dlg">
+  <form method="dialog" id="dlgForm">
+    <div class="dlg-h" id="dlgTitle">新增電子書</div>
+    <div class="dlg-b">
+      <div id="pickWrap">
+        <div class="drop" id="drop" tabindex="0" role="button">
+          <b>選擇電子書 HTML 檔</b><br>
+          點此選擇，或把檔案拖曳進來<br>
+          <span class="small">系統會自動取出「第一頁」當作封面</span>
+        </div>
+        <input type="file" id="file" accept=".html,text/html" hidden>
+      </div>
+
+      <div class="field"><label for="fTitle">書名</label>
+        <input id="fTitle" required placeholder="例：小晴的奇妙旅程"></div>
+
+      <div style="display:flex;gap:10px;flex-wrap:wrap">
+        <div class="field grow"><label for="fCollection">類別（系列）</label>
+          <div class="row">
+            <select id="fCollection"></select>
+            <button type="button" class="btn" id="newColBtn" title="新增一個類別">＋</button>
+          </div></div>
+        <div class="field" style="width:118px"><label for="fGroup">組別</label>
+          <input id="fGroup" placeholder="第一組"></div>
+        <div class="field" style="width:104px"><label for="fLang">語言</label>
+          <input id="fLang" placeholder="中泰"></div>
+      </div>
+
+      <div class="field">
+        <span class="lbl"><label for="fPath">檔案路徑（依類別資料夾 + 檔名自動產生）</label>
+          <label class="opt small"><input type="checkbox" id="fPathEdit"> 手動修改</label></span>
+        <input id="fPath" readonly placeholder="選好類別與電子書檔後自動填入"></div>
+
+      <div class="hint" id="dlgHint"></div>
+    </div>
+    <div class="dlg-f">
+      <button class="btn ghost" value="cancel" formnovalidate>取消</button>
+      <button class="btn primary" value="ok">確定</button>
+    </div>
+  </form>
+</dialog>
+
+<dialog id="dlgCol">
+  <form method="dialog" id="colForm">
+    <div class="dlg-h" id="colTitle">新增類別</div>
+    <div class="dlg-b">
+      <div class="field"><label for="cName">類別名稱（顯示在書架上）</label>
+        <input id="cName" placeholder="例：環保"></div>
+      <div class="field"><label for="cFolder">資料夾名稱（這一類的電子書放在哪）</label>
+        <input id="cFolder" placeholder="AI繪本-環保(電子書)"></div>
+      <div class="hint" id="colHint">資料夾要和 GitHub 上的一致。用本機小工具新增電子書時，
+        它會自動把資料夾建好。</div>
+    </div>
+    <div class="dlg-f">
+      <button class="btn ghost" value="cancel" formnovalidate>取消</button>
+      <button class="btn primary" id="colOk" value="ok">建立</button>
+    </div>
+  </form>
+</dialog>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<!-- 用 file:// 直接開啟時的備援清單；放到 GitHub Pages 後一律以 books.json 為準 -->
+<script type="application/json" id="fallback">{
+  "updated": "2026-08-30",
+  "collections": [
+    {
+      "name": "清邁慈中的故事",
+      "folder": "AI繪本-清邁慈中的故事(電子書)"
+    },
+    {
+      "name": "素食",
+      "folder": "AI繪本-素食(電子書)"
+    }
+  ],
+  "books": [
+    {
+      "id": "cm-g1",
+      "title": "慈濟學校 我們的故事",
+      "group": "第一組",
+      "lang": "",
+      "collection": "清邁慈中的故事",
+      "pages": 24,
+      "path": "AI繪本-清邁慈中的故事(電子書)/第一組_โรงเรียนของเรา เรื่องราวของเรา.html",
+      "cover": "covers/cm-g1.webp",
+      "hidden": false
+    },
+    {
+      "id": "cm-g2",
+      "title": "慈濟人文 與自然共生的智慧",
+      "group": "第二組",
+      "lang": "",
+      "collection": "清邁慈中的故事",
+      "pages": 22,
+      "path": "AI繪本-清邁慈中的故事(電子書)/第二組_慈濟人文 與自然共生的智慧.html",
+      "cover": "covers/cm-g2.webp",
+      "hidden": false
+    },
+    {
+      "id": "cm-g3",
+      "title": "慈濟小學的人文自然課",
+      "group": "第三組",
+      "lang": "",
+      "collection": "清邁慈中的故事",
+      "pages": 24,
+      "path": "AI繪本-清邁慈中的故事(電子書)/第三組.html",
+      "cover": "covers/cm-g3.webp",
+      "hidden": false
+    },
+    {
+      "id": "cm-g4",
+      "title": "從我們的雙手開始",
+      "group": "第四組",
+      "lang": "",
+      "collection": "清邁慈中的故事",
+      "pages": 28,
+      "path": "AI繪本-清邁慈中的故事(電子書)/第四組_เริ่มจากมือของเรา.html",
+      "cover": "covers/cm-g4.webp",
+      "hidden": false
+    },
+    {
+      "id": "cm-g6a",
+      "title": "เรื่องราวของพวกเราเอง",
+      "group": "第六組",
+      "lang": "泰文",
+      "collection": "清邁慈中的故事",
+      "pages": 24,
+      "path": "AI繪本-清邁慈中的故事(電子書)/第六組 our story.html",
+      "cover": "covers/cm-g6a.webp",
+      "hidden": false
+    },
+    {
+      "id": "cm-g6b",
+      "title": "我們的故事",
+      "group": "第六組",
+      "lang": "中文",
+      "collection": "清邁慈中的故事",
+      "pages": 24,
+      "path": "AI繪本-清邁慈中的故事(電子書)/GROUP 6_我們的故事.html",
+      "cover": "covers/cm-g6b.webp",
+      "hidden": false
+    },
+    {
+      "id": "veg-g1-a",
+      "title": "選擇不吃肉",
+      "group": "第一組",
+      "lang": "中泰",
+      "collection": "素食",
+      "pages": 34,
+      "path": "AI繪本-素食(電子書)/第一組_選擇不吃肉＿中泰.html",
+      "cover": "covers/veg-g1-a.webp",
+      "hidden": false
+    },
+    {
+      "id": "veg-g1-b",
+      "title": "選擇不吃肉",
+      "group": "第一組",
+      "lang": "英泰",
+      "collection": "素食",
+      "pages": 34,
+      "path": "AI繪本-素食(電子書)/第一組_選擇不吃肉＿英泰.html",
+      "cover": "covers/veg-g1-b.webp",
+      "hidden": false
+    },
+    {
+      "id": "veg-g2-a",
+      "title": "達克的健康選擇",
+      "group": "第二組",
+      "lang": "中泰",
+      "collection": "素食",
+      "pages": 34,
+      "path": "AI繪本-素食(電子書)/第二組_達克的健康選擇_中泰.html",
+      "cover": "covers/veg-g2-a.webp",
+      "hidden": false
+    },
+    {
+      "id": "veg-g2-b",
+      "title": "達克的健康選擇",
+      "group": "第二組",
+      "lang": "英泰",
+      "collection": "素食",
+      "pages": 34,
+      "path": "AI繪本-素食(電子書)/第二組_達克的健康選擇_英泰.html",
+      "cover": "covers/veg-g2-b.webp",
+      "hidden": false
+    },
+    {
+      "id": "veg-g3-a",
+      "title": "如果森林消失了",
+      "group": "第三組",
+      "lang": "中英",
+      "collection": "素食",
+      "pages": 34,
+      "path": "AI繪本-素食(電子書)/第三組_如果森林消失了_中英.html",
+      "cover": "covers/veg-g3-a.webp",
+      "hidden": false
+    },
+    {
+      "id": "veg-g3-b",
+      "title": "如果森林消失了",
+      "group": "第三組",
+      "lang": "英泰",
+      "collection": "素食",
+      "pages": 34,
+      "path": "AI繪本-素食(電子書)/第三組_如果森林消失了_英泰.html",
+      "cover": "covers/veg-g3-b.webp",
+      "hidden": false
+    },
+    {
+      "id": "veg-g4-a",
+      "title": "母山羊的勇敢選擇",
+      "group": "第四組",
+      "lang": "中泰",
+      "collection": "素食",
+      "pages": 36,
+      "path": "AI繪本-素食(電子書)/第四組_母山羊的勇敢選擇_中文泰文.html",
+      "cover": "covers/veg-g4-a.webp",
+      "hidden": false
+    },
+    {
+      "id": "veg-g4-b",
+      "title": "母山羊的勇敢選擇",
+      "group": "第四組",
+      "lang": "英泰",
+      "collection": "素食",
+      "pages": 36,
+      "path": "AI繪本-素食(電子書)/第四組_母山羊的勇敢選擇_英文泰文.html",
+      "cover": "covers/veg-g4-b.webp",
+      "hidden": false
+    },
+    {
+      "id": "veg-g5-a",
+      "title": "綠色餐盤任務",
+      "group": "第五組",
+      "lang": "中泰",
+      "collection": "素食",
+      "pages": 36,
+      "path": "AI繪本-素食(電子書)/第五組_綠色餐盤任務_中泰.html",
+      "cover": "covers/veg-g5-a.webp",
+      "hidden": false
+    },
+    {
+      "id": "veg-g5-b",
+      "title": "綠色餐盤任務",
+      "group": "第五組",
+      "lang": "英泰",
+      "collection": "素食",
+      "pages": 34,
+      "path": "AI繪本-素食(電子書)/第五組_綠色餐盤任務_英泰.html",
+      "cover": "covers/veg-g5-b.webp",
+      "hidden": false
+    },
+    {
+      "id": "veg-g6",
+      "title": "小晴的奇妙旅程",
+      "group": "第六組",
+      "lang": "中英",
+      "collection": "素食",
+      "pages": 34,
+      "path": "AI繪本-素食(電子書)/第六組_小晴的奇妙旅程_中英文.html",
+      "cover": "covers/veg-g6.webp",
+      "hidden": false
+    },
+    {
+      "id": "veg-g7-a",
+      "title": "謝謝你哦！我的身體",
+      "group": "第七組",
+      "lang": "中泰",
+      "collection": "素食",
+      "pages": 34,
+      "path": "AI繪本-素食(電子書)/第七組_謝謝你哦！我的身體_th-tw.html",
+      "cover": "covers/veg-g7-a.webp",
+      "hidden": false
+    },
+    {
+      "id": "veg-g7-b",
+      "title": "謝謝你哦！我的身體",
+      "group": "第七組",
+      "lang": "英泰",
+      "collection": "素食",
+      "pages": 34,
+      "path": "AI繪本-素食(電子書)/第七組_謝謝你哦！我的身體_eng-th.html",
+      "cover": "covers/veg-g7-b.webp",
+      "hidden": false
+    }
+  ]
+}</script>
+
+<script>
+(function(){
+  "use strict";
+  var LS_DATA = "picturebook-shelf-v1";
+  var LS_THEME = "picturebook-shelf-theme";
+  var books = [], baseline = [], dirty = false, manage = false;
+  var cols = [], baselineCols = [];          /* 類別（系列）清單 */
+  var filter = "*", query = "", editingId = null, pending = null, localMode = false;
+  var editingFile = "", colFromBook = false, colFolderTouched = false;
+  var editingCol = null, broken = {};
+
+  function $(id){ return document.getElementById(id); }
+
+  /* ---------------- 深淺色 ---------------- */
+  try{
+    var th = localStorage.getItem(LS_THEME);
+    if(th) document.documentElement.setAttribute("data-theme", th);
+  }catch(e){}
+  $("themeBtn").onclick = function(){
+    var cur = document.documentElement.getAttribute("data-theme");
+    var dark = cur ? cur === "dark" : matchMedia("(prefers-color-scheme:dark)").matches;
+    var next = dark ? "light" : "dark";
+    document.documentElement.setAttribute("data-theme", next);
+    try{ localStorage.setItem(LS_THEME, next); }catch(e){}
+  };
+
+  /* ---------------- 小工具 ---------------- */
+  function toast(msg){
+    var t = $("toast");
+    t.textContent = msg; t.classList.add("on");
+    clearTimeout(toast._t);
+    toast._t = setTimeout(function(){ t.classList.remove("on"); }, 2800);
+  }
+  function href(p){ return String(p || "").split("/").map(encodeURIComponent).join("/"); }
+  function esc(s){
+    return String(s == null ? "" : s).replace(/[&<>"']/g, function(c){
+      return { "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" }[c];
+    });
+  }
+  function uid(){
+    return "bk-" + Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 6);
+  }
+  function save(){
+    dirty = true;
+    try{ localStorage.setItem(LS_DATA, JSON.stringify({ collections: cols, books: books })); }
+    catch(e){ toast("瀏覽器儲存空間不足，請先匯出 books.json"); }
+    render();
+  }
+  function folderOf(p){
+    var i = String(p || "").lastIndexOf("/");
+    return i < 0 ? "" : p.slice(0, i);
+  }
+
+  /* ---------------- 載入清單 ---------------- */
+  function normalize(list){
+    return (list || []).map(function(b){
+      return {
+        id: b.id || uid(),
+        title: b.title || "未命名繪本",
+        group: b.group || "",
+        lang: b.lang || "",
+        collection: b.collection || "未分類",
+        pages: b.pages || 0,
+        path: b.path || "",
+        cover: b.cover || "",
+        hidden: !!b.hidden,
+        note: b.note || ""
+      };
+    });
+  }
+  /* 類別清單：以 books.json 的 collections 為主，書裡出現但沒登記的補在後面 */
+  function normalizeCols(list, bks){
+    var out = [], i, j, name, hit;
+    for(i = 0; i < (list || []).length; i++){
+      name = list[i] && list[i].name ? String(list[i].name).trim() : "";
+      if(!name) continue;
+      hit = null;
+      for(j = 0; j < out.length; j++) if(out[j].name === name) hit = out[j];
+      if(hit) continue;
+      out.push({ name: name, folder: String(list[i].folder || "").replace(/^\/+|\/+$/g, "") || name });
+    }
+    for(i = 0; i < (bks || []).length; i++){
+      name = bks[i].collection;
+      if(!name) continue;
+      hit = null;
+      for(j = 0; j < out.length; j++) if(out[j].name === name) hit = out[j];
+      if(!hit) out.push({ name: name, folder: folderOf(bks[i].path) || name });
+      else if(!hit.folder) hit.folder = folderOf(bks[i].path) || name;
+    }
+    return out;
+  }
+  function folderFor(name){
+    for(var i = 0; i < cols.length; i++) if(cols[i].name === name) return cols[i].folder;
+    return name || "";
+  }
+  function countIn(name){
+    var n = 0;
+    for(var i = 0; i < books.length; i++) if(books[i].collection === name) n++;
+    return n;
+  }
+
+  function boot(){
+    fetch("books.json", { cache: "no-cache" })
+      .then(function(r){ if(!r.ok) throw new Error(r.status); return r.json(); })
+      .then(function(j){
+        baseline = normalize(j.books);
+        baselineCols = normalizeCols(j.collections, baseline);
+        start();
+      })
+      .catch(function(){
+        localMode = true;
+        try{
+          var j = JSON.parse($("fallback").textContent);
+          baseline = normalize(j.books);
+          baselineCols = normalizeCols(j.collections, baseline);
+        }catch(e){ baseline = []; baselineCols = []; }
+        start();
+      });
+  }
+  function start(){
+    var stored = null;
+    try{ stored = JSON.parse(localStorage.getItem(LS_DATA) || "null"); }catch(e){}
+    if(stored && stored.books){
+      books = normalize(stored.books);
+      cols = normalizeCols(stored.collections || baselineCols, books);
+      dirty = true;
+    }else{
+      books = baseline.slice();
+      cols = normalizeCols(baselineCols, books);
+    }
+    render();
+  }
+
+  /* ---------------- 畫面 ---------------- */
+  /* 前台只看得到沒被隱藏的書；管理模式下全部都看得到 */
+  function pool(){
+    return manage ? books : books.filter(function(b){ return !b.hidden; });
+  }
+  function collections(){
+    var out = [], i, j, has;
+    for(i = 0; i < cols.length; i++){
+      if(manage){ out.push(cols[i].name); continue; }   /* 管理模式連空類別都列出來 */
+      has = false;
+      for(j = 0; j < books.length; j++){
+        if(!books[j].hidden && books[j].collection === cols[i].name){ has = true; break; }
+      }
+      if(has) out.push(cols[i].name);
+    }
+    return out;
+  }
+  function matches(b){
+    if(!query) return true;
+    var hay = (b.title + " " + b.group + " " + b.lang + " " + b.collection + " " + b.path).toLowerCase();
+    return hay.indexOf(query.toLowerCase()) >= 0;
+  }
+
+  function render(){
+    document.body.classList.toggle("manage", manage);
+    $("addBtn").hidden = !manage;
+    $("colBtn").hidden = !manage;
+    $("checkBtn").hidden = !manage;
+    $("exportBtn").hidden = !manage;
+    $("resetBtn").hidden = !(manage && dirty);
+    $("manageBtn").setAttribute("aria-pressed", manage ? "true" : "false");
+    var shownTotal = books.filter(function(b){ return !b.hidden; }).length;
+    var offTotal = books.length - shownTotal;
+    $("total").textContent = manage
+      ? (books.length + (offTotal ? "（其中 " + offTotal + " 本隱藏中）" : ""))
+      : shownTotal;
+
+    var cs = collections();
+    if(filter !== "*" && cs.indexOf(filter) < 0) filter = "*";
+    var chips = ['<button class="chip" data-c="*" aria-pressed="' + (filter === "*") + '">全部</button>'];
+    cs.forEach(function(c){
+      chips.push('<button class="chip" data-c="' + esc(c) + '" aria-pressed="' +
+                 (filter === c) + '">' + esc(c) + '</button>');
+    });
+    $("chips").innerHTML = chips.join("");
+
+    var bn = [];
+    if(localMode){
+      bn.push('<div class="notice"><span>💡</span><div class="grow"><b>本機預覽模式</b>：' +
+        '瀏覽器不允許用 <code>file://</code> 讀取 <code>books.json</code>，' +
+        '目前顯示的是頁面內建的備援清單。放到 GitHub Pages 之後就會改讀 <code>books.json</code>。' +
+        '</div></div>');
+    }
+    if(manage){
+      bn.push('<div class="notice"><span>🛠</span><div class="grow"><b>管理模式</b>：' +
+        '直接拖曳封面就能調整同一系列裡的前後順序（也可以用 ← → 按鈕）。' +
+        '改完記得匯出 <code>books.json</code>。</div></div>');
+    }
+    if(dirty){
+      var news = books.filter(function(b){ return b.note === "new"; });
+      var extra = news.length
+        ? '<br>另外，新增的書本身也要上傳到 GitHub：' +
+          news.map(function(b){ return '<code>' + esc(b.path) + '</code>'; }).join("、")
+        : "";
+      bn.push('<div class="notice warn"><span>⚠️</span><div class="grow">' +
+        '<b>目前的修改只存在這台電腦</b>：請按「⬇ 匯出 books.json」下載檔案，' +
+        '再把它上傳到 GitHub 專案根目錄取代舊的 <code>books.json</code>，網站上的書架才會真的更新。' +
+        extra + '</div></div>');
+    }
+    $("banners").innerHTML = bn.join("");
+
+    var html = [], shown = 0;
+    cs.forEach(function(c){
+      if(filter !== "*" && filter !== c) return;
+      var list = pool().filter(function(b){ return b.collection === c && matches(b); });
+      if(!list.length && !manage) return;
+      shown += list.length;
+      var all = countIn(c);
+      html.push('<section class="shelf"><h2>' + esc(c) +
+                '<span class="n">' + list.length + ' 本</span>' +
+                (manage
+                  ? '<button class="icon" data-editcol="' + esc(c) + '" title="改類別名稱或資料夾">✎</button>' +
+                    '<button class="icon del" data-delcol="' + esc(c) + '"' +
+                    (all ? ' disabled title="這個類別還有 ' + all + ' 本書，請先移除或改到別的類別"'
+                         : ' title="刪除這個類別"') + '>✕</button>'
+                  : "") +
+                '</h2><div class="grid">');
+      list.forEach(function(b){ html.push(card(b, c)); });
+      if(manage){
+        html.push('<div class="card"><button class="addcard" data-add="' + esc(c) +
+                  '"><span><span class="plus">＋</span>新增到「' + esc(c) + '」</span></button></div>');
+      }
+      html.push("</div></section>");
+    });
+    if(!shown && !manage) html.push('<div class="empty">找不到符合的繪本。</div>');
+    $("shelves").innerHTML = html.join("");
+  }
+
+  function card(b, c){
+    var sameCol = pool().filter(function(x){ return x.collection === c; });
+    var i = sameCol.indexOf(b);
+    var src = b.cover ? (b.cover.slice(0, 5) === "data:" ? b.cover : href(b.cover)) : "";
+    var cover = src
+      ? '<img src="' + src + '" alt="' + esc(b.title) + ' 封面" loading="lazy" draggable="false">'
+      : '<div class="noimg">（沒有封面）</div>';
+    var tags = "";
+    if(manage && broken[b.id]) tags += '<span class="tag off">找不到檔案</span>';
+    if(manage && b.hidden) tags += '<span class="tag off">隱藏中</span>';
+    if(manage && b.group)  tags += '<span class="tag">' + esc(b.group) + '</span>';
+    if(b.lang)  tags += '<span class="tag lang">' + esc(b.lang) + '</span>';
+    return '<div class="card' + (b.hidden ? " off" : "") + '" data-id="' + esc(b.id) + '"' +
+          (manage ? ' draggable="true"' : "") + '>' +
+        '<a class="hit" href="' + href(b.path) + '" target="_blank" rel="noopener"' +
+          (manage ? ' draggable="false"' : "") + '>' +
+          '<div class="thumb">' + cover +
+            (b.pages ? '<span class="pages">' + b.pages + ' 頁</span>' : "") +
+          '</div></a>' +
+        '<div class="meta">' +
+          '<div class="t">' + esc(b.title) + '</div>' +
+          (tags ? '<div class="tags">' + tags + '</div>' : "") +
+          '<div class="tools">' +
+            '<button class="icon" data-act="vis" title="' +
+              (b.hidden ? "改為顯示在前台" : "在前台隱藏這本") + '">' +
+              (b.hidden ? "🙈" : "👁") + '</button>' +
+            '<button class="icon" data-act="edit" title="編輯">✎</button>' +
+            '<button class="icon" data-act="up" title="往前移"' + (i <= 0 ? " disabled" : "") + '>←</button>' +
+            '<button class="icon" data-act="down" title="往後移"' +
+              (i >= sameCol.length - 1 ? " disabled" : "") + '>→</button>' +
+            '<button class="icon del" data-act="del" title="刪除">✕</button>' +
+          '</div>' +
+        '</div></div>';
+  }
+
+  /* ---------------- 互動 ---------------- */
+  $("manageBtn").onclick = function(){ manage = !manage; render(); };
+  $("chips").addEventListener("click", function(e){
+    var b = e.target.closest("[data-c]");
+    if(b){ filter = b.dataset.c; render(); }
+  });
+  $("q").addEventListener("input", function(e){ query = e.target.value.trim(); render(); });
+
+  $("shelves").addEventListener("click", function(e){
+    var ec = e.target.closest("[data-editcol]");
+    if(ec){ openColDialog(false, ec.dataset.editcol); return; }
+    var dc = e.target.closest("[data-delcol]");
+    if(dc){ if(!dc.disabled) removeCollection(dc.dataset.delcol); return; }
+    var add = e.target.closest("[data-add]");
+    if(add){ openDialog(null, add.dataset.add); return; }
+    var btn = e.target.closest("[data-act]");
+    if(!btn) return;
+    var id = e.target.closest(".card").dataset.id;
+    var b = books.filter(function(x){ return x.id === id; })[0];
+    if(!b) return;
+
+    if(btn.dataset.act === "del"){
+      if(confirm("確定要從書架移除「" + b.title + "」嗎？\n\n（只會從清單移除，電子書檔案本身不會被刪掉。）")){
+        books = books.filter(function(x){ return x.id !== id; });
+        save();
+        toast("已移除「" + b.title + "」");
+      }
+      return;
+    }
+    if(btn.dataset.act === "vis"){
+      b.hidden = !b.hidden;
+      save();
+      toast(b.hidden ? "「" + b.title + "」已在前台隱藏" : "「" + b.title + "」已恢復顯示");
+      return;
+    }
+    if(btn.dataset.act === "edit"){ openDialog(b, b.collection); return; }
+
+    var same = books.filter(function(x){ return x.collection === b.collection; });
+    var k = same.indexOf(b) + (btn.dataset.act === "up" ? -1 : 1);
+    if(k < 0 || k >= same.length) return;
+    var a1 = books.indexOf(b), a2 = books.indexOf(same[k]);
+    books[a1] = same[k];
+    books[a2] = b;
+    save();
+  });
+
+  /* ---------------- 類別（系列） ---------------- */
+  function removeCollection(name){
+    var n = countIn(name);
+    if(n){ toast("「" + name + "」還有 " + n + " 本書，請先移除或改到別的類別"); return; }
+    if(!confirm("確定要刪除類別「" + name + "」嗎？\n\n" +
+                "這個類別底下沒有書，只會從書架清單移除；\n" +
+                "GitHub 上如果已經有同名資料夾，不會被動到。")) return;
+    var out = [];
+    for(var i = 0; i < cols.length; i++) if(cols[i].name !== name) out.push(cols[i]);
+    cols = out;
+    if(filter === name) filter = "*";
+    save();
+    toast("已刪除類別「" + name + "」");
+  }
+
+  function findCol(name){
+    for(var i = 0; i < cols.length; i++) if(cols[i].name === name) return cols[i];
+    return null;
+  }
+
+  function openColDialog(fromBook, editName){
+    var cur = editName ? findCol(editName) : null;
+    colFromBook = !!fromBook;
+    editingCol = cur ? cur.name : null;
+    colFolderTouched = !!cur;
+    $("colTitle").textContent = cur ? "編輯類別" : "新增類別";
+    $("colOk").textContent = cur ? "儲存" : "建立";
+    $("cName").value = cur ? cur.name : "";
+    $("cFolder").value = cur ? cur.folder : "";
+    $("colHint").className = "hint";
+    $("colHint").innerHTML = cur
+      ? "資料夾要和 GitHub 上實際的資料夾名稱一模一樣。改了資料夾，這個類別底下 <b>" +
+        countIn(cur.name) + "</b> 本書的路徑會一起換過去。"
+      : "資料夾要和 GitHub 上的一致。用本機小工具新增電子書時，它會自動把資料夾建好。";
+    $("dlgCol").showModal();
+    $("cName").focus();
+  }
+  $("colBtn").onclick = function(){ openColDialog(false, null); };
+  $("newColBtn").onclick = function(){ openColDialog(true, null); };
+  $("cFolder").addEventListener("input", function(){ colFolderTouched = true; });
+  $("cName").addEventListener("input", function(){
+    if(colFolderTouched) return;
+    var v = $("cName").value.trim();
+    $("cFolder").value = v ? "AI繪本-" + v + "(電子書)" : "";
+  });
+
+  $("colForm").addEventListener("submit", function(e){
+    if(e.submitter && e.submitter.value !== "ok") return;
+    var name = $("cName").value.trim();
+    var folder = $("cFolder").value.trim().replace(/^\.?\/+/, "").replace(/\/+$/, "");
+    function bad(msg){
+      e.preventDefault();
+      $("colHint").className = "hint err";
+      $("colHint").textContent = msg;
+    }
+    if(!name) { bad("請輸入類別名稱。"); return; }
+    for(var i = 0; i < cols.length; i++){
+      if(cols[i].name === name && cols[i].name !== editingCol){
+        bad("已經有一個叫「" + name + "」的類別了。"); return;
+      }
+    }
+    if(!folder) folder = name;
+
+    if(editingCol){
+      var col = findCol(editingCol), old = editingCol, moved = 0;
+      col.name = name;
+      col.folder = folder;
+      for(var k = 0; k < books.length; k++){
+        if(books[k].collection !== old) continue;
+        books[k].collection = name;
+        var base = String(books[k].path).split("/").pop();
+        books[k].path = (folder ? folder + "/" : "") + base;
+        moved++;
+      }
+      if(filter === old) filter = name;
+      editingCol = null;
+      save();
+      toast("已更新類別「" + name + "」" + (moved ? "，" + moved + " 本書的路徑已一起調整" : ""));
+      return;
+    }
+
+    cols.push({ name: name, folder: folder });
+    save();
+    if(colFromBook){
+      fillCollections(name);
+      syncPath();
+    }else{
+      toast("已新增類別「" + name + "」");
+    }
+  });
+
+  /* ---------------- 檢查檔案路徑是否真的存在 ---------------- */
+  $("checkBtn").onclick = function(){
+    if(localMode){
+      toast("用 file:// 開啟時無法檢查，請在 GitHub Pages 上按這個鈕");
+      return;
+    }
+    if(!books.length) return;
+    var done = 0, bad = 0, n = books.length;
+    broken = {};
+    toast("檢查中…（" + n + " 本）");
+    books.forEach(function(b){
+      var mark = function(ok){
+        if(!ok){ broken[b.id] = true; bad++; }
+        done++;
+        if(done === n){
+          render();
+          toast(bad ? ("有 " + bad + " 本書的檔案找不到，卡片上已標出來")
+                    : "全部 " + n + " 本的檔案路徑都正常");
+        }
+      };
+      if(!b.path){ mark(false); return; }
+      fetch(href(b.path), { method: "HEAD", cache: "no-cache" })
+        .then(function(r){ mark(r.ok); })
+        .catch(function(){ mark(false); });
+    });
+  };
+
+  /* ---------------- 拖曳排序 ---------------- */
+  var dragId = null;
+
+  function byId(id){ return books.filter(function(b){ return b.id === id; })[0]; }
+  function clearMarks(){
+    var n = $("shelves").querySelectorAll(".dropL,.dropR");
+    for(var i = 0; i < n.length; i++) n[i].classList.remove("dropL", "dropR");
+  }
+
+  $("shelves").addEventListener("dragstart", function(e){
+    var card = e.target.closest ? e.target.closest(".card[data-id]") : null;
+    if(!manage || !card){ return; }
+    dragId = card.dataset.id;
+    card.classList.add("dragging");
+    if(e.dataTransfer){
+      e.dataTransfer.effectAllowed = "move";
+      try{ e.dataTransfer.setData("text/plain", dragId); }catch(err){}
+    }
+  });
+
+  $("shelves").addEventListener("dragover", function(e){
+    if(!manage || !dragId) return;
+    clearMarks();
+    var card = e.target.closest ? e.target.closest(".card[data-id]") : null;
+    if(!card || card.dataset.id === dragId) return;
+    var a = byId(dragId), b = byId(card.dataset.id);
+    if(!a || !b || a.collection !== b.collection) return;   /* 只在同一系列裡調整 */
+    e.preventDefault();
+    if(e.dataTransfer) e.dataTransfer.dropEffect = "move";
+    var r = card.getBoundingClientRect();
+    card.classList.add(e.clientX < r.left + r.width / 2 ? "dropL" : "dropR");
+  });
+
+  $("shelves").addEventListener("drop", function(e){
+    if(!manage || !dragId) return;
+    var card = e.target.closest ? e.target.closest(".card[data-id]") : null;
+    if(!card) return;
+    e.preventDefault();
+    var before = card.classList.contains("dropL");
+    var id = dragId;
+    dragId = null;
+    clearMarks();
+    moveBook(id, card.dataset.id, before);
+  });
+
+  $("shelves").addEventListener("dragend", function(){
+    dragId = null;
+    clearMarks();
+    var d = $("shelves").querySelector(".dragging");
+    if(d) d.classList.remove("dragging");
+  });
+
+  function moveBook(srcId, dstId, before){
+    var a = byId(srcId), b = byId(dstId);
+    if(!a || !b || a === b || a.collection !== b.collection) return;
+    var arr = books.slice();
+    arr.splice(arr.indexOf(a), 1);
+    var j = arr.indexOf(b) + (before ? 0 : 1);
+    arr.splice(j, 0, a);
+    books = arr;
+    save();
+  }
+
+  /* ---------------- 新增 / 編輯 ---------------- */
+  var dlg = $("dlg");
+
+  function resetDrop(){
+    $("drop").className = "drop";
+    $("drop").innerHTML = "<b>選擇電子書 HTML 檔</b><br>點此選擇，或把檔案拖曳進來<br>" +
+      '<span class="small">系統會自動取出「第一頁」當作封面</span>';
+  }
+
+  function fillCollections(sel){
+    var opts = [], i;
+    for(i = 0; i < cols.length; i++){
+      opts.push('<option value="' + esc(cols[i].name) + '"' +
+                (cols[i].name === sel ? ' selected' : '') + '>' + esc(cols[i].name) + '</option>');
+    }
+    if(!opts.length) opts.push('<option value="">（還沒有任何類別，請先按 ＋ 建立）</option>');
+    $("fCollection").innerHTML = opts.join("");
+  }
+
+  /* 路徑 = 類別資料夾 + 檔名，使用者不用自己打 */
+  function syncPath(){
+    if($("fPathEdit").checked) return;
+    var folder = folderFor($("fCollection").value);
+    var name = pending ? pending.file : editingFile;
+    $("fPath").value = name ? ((folder ? folder + "/" : "") + name) : "";
+  }
+
+  function openDialog(book, collection){
+    editingId = book ? book.id : null;
+    pending = null;
+    editingFile = book ? String(book.path).split("/").pop() : "";
+    $("dlgTitle").textContent = book ? "編輯電子書" : "新增電子書";
+    $("pickWrap").hidden = !!book;
+    $("fTitle").value = book ? book.title : "";
+    fillCollections(book ? book.collection
+                         : (collection && collection !== "*" ? collection
+                            : (cols.length ? cols[0].name : "")));
+    $("fGroup").value = book ? book.group : "";
+    $("fLang").value = book ? book.lang : "";
+    $("fPathEdit").checked = false;
+    $("fPath").readOnly = true;
+    $("fPath").value = book ? book.path : "";
+    if(!book) syncPath();
+    $("file").value = "";
+    resetDrop();
+    $("dlgHint").className = "hint";
+    $("dlgHint").innerHTML = book
+      ? "改完之後記得匯出 <code>books.json</code> 並上傳到 GitHub。若改了類別，也要把檔案搬到新資料夾。"
+      : "按確定之後，請把同一個 HTML 檔上傳到 GitHub 上面那個路徑（本機小工具會自動幫你複製）。";
+    dlg.showModal();
+  }
+
+  $("addBtn").onclick = function(){ openDialog(null, filter); };
+  $("drop").onclick = function(){ $("file").click(); };
+  $("drop").onkeydown = function(e){
+    if(e.key === "Enter" || e.key === " "){ e.preventDefault(); $("file").click(); }
+  };
+  $("file").onchange = function(e){ if(e.target.files[0]) takeFile(e.target.files[0]); };
+  ["dragenter", "dragover"].forEach(function(t){
+    $("drop").addEventListener(t, function(e){ e.preventDefault(); $("drop").classList.add("over"); });
+  });
+  ["dragleave", "drop"].forEach(function(t){
+    $("drop").addEventListener(t, function(e){ e.preventDefault(); $("drop").classList.remove("over"); });
+  });
+  $("drop").addEventListener("drop", function(e){
+    var f = e.dataTransfer && e.dataTransfer.files[0];
+    if(f) takeFile(f);
+  });
+
+  $("fCollection").addEventListener("change", syncPath);
+  $("fPathEdit").addEventListener("change", function(){
+    $("fPath").readOnly = !$("fPathEdit").checked;
+    if(!$("fPathEdit").checked) syncPath(); else $("fPath").focus();
+  });
+
+  function takeFile(file){
+    if(!/\.html?$/i.test(file.name)){ toast("請選擇 .html 電子書檔"); return; }
+    $("drop").innerHTML = "<b>讀取中…</b><br><span class=\"small\">" + esc(file.name) + "</span>";
+    readBook(file).then(function(info){
+      pending = info;
+      $("drop").className = "drop filled";
+      $("drop").innerHTML = '<div class="prev">' +
+        (info.cover ? '<img src="' + info.cover + '" alt="封面預覽">' : "") +
+        '<div class="grow"><b>已取得封面（第 1 頁）</b>' +
+        '<div class="small">' + esc(file.name) + " · " + (info.pages || "?") + " 頁</div>" +
+        '<div class="small">想換一本的話，點這裡重新選擇</div></div></div>';
+      if(!$("fTitle").value) $("fTitle").value = info.title;
+      if(!$("fGroup").value) $("fGroup").value = info.group;
+      if(!$("fLang").value)  $("fLang").value  = info.lang;
+      syncPath();
+    }).catch(function(err){
+      pending = null;
+      $("drop").className = "drop";
+      $("drop").innerHTML = "<b>讀不到封面</b><br><span class=\"small\">" + esc(err.message) +
+        "，仍可手動填寫路徑後新增</span>";
+    });
+  }
+
+  /* 從電子書 HTML 取出第一頁、頁數與書名 */
+  function readBook(file){
+    return file.text().then(function(text){
+      var RE = /data:image\/(?:webp|png|jpe?g|gif);base64,[A-Za-z0-9+/=]+/;
+      var uri = null, i, m;
+
+      i = text.indexOf("const THUMBS");
+      if(i >= 0){ m = RE.exec(text.slice(i, i + 4000000)); if(m) uri = m[0]; }
+      if(!uri){
+        i = text.indexOf("const PAGES");
+        if(i >= 0){ m = RE.exec(text.slice(i, i + 12000000)); if(m) uri = m[0]; }
+      }
+      if(!uri){ m = RE.exec(text); if(m) uri = m[0]; }
+      if(!uri) throw new Error("這個檔案裡找不到頁面圖片");
+
+      var pages = 0, pm = /const PAGES\s*=\s*\[/.exec(text);
+      if(pm){
+        var s = pm.index + pm[0].length, e = text.indexOf("];", s);
+        pages = (text.slice(s, e).match(/data:image\//g) || []).length;
+      }
+
+      var tm = /const TITLE\s*=\s*"([^"]*)"/.exec(text);
+      var name = file.name.replace(/\.html?$/i, "");
+      var parts = name.split(/[_＿]/);
+      var group = /^(第.{1,2}組|GROUP\s*\d+)$/i.test(parts[0].trim()) ? parts[0].trim() : "";
+      var lang = parts.length > 2 ? parts[parts.length - 1] : "";
+      var title = name;
+      if(tm && tm[1] && tm[1].indexOf("我的翻頁書") < 0) title = tm[1];
+      else if(group) title = parts.slice(1, parts.length > 2 ? -1 : undefined).join(" ") || name;
+
+      return shrink(uri).then(function(small){
+        return { cover: small, pages: pages, title: title.trim(),
+                 group: group, lang: lang, file: file.name };
+      });
+    });
+  }
+
+  /* 圖太大就縮到寬 300，讓 books.json 保持輕巧 */
+  function shrink(uri){
+    if(uri.length <= 46000) return Promise.resolve(uri);
+    return new Promise(function(res){
+      var img = new Image();
+      img.onload = function(){
+        try{
+          var w = 300, h = Math.round(img.height * w / img.width);
+          var cv = document.createElement("canvas");
+          cv.width = w; cv.height = h;
+          cv.getContext("2d").drawImage(img, 0, 0, w, h);
+          var out = cv.toDataURL("image/webp", .82);
+          if(out.indexOf("data:image/webp") !== 0) out = cv.toDataURL("image/jpeg", .82);
+          res(out.length < uri.length ? out : uri);
+        }catch(e){ res(uri); }
+      };
+      img.onerror = function(){ res(uri); };
+      img.src = uri;
+    });
+  }
+
+  $("dlgForm").addEventListener("submit", function(e){
+    if(e.submitter && e.submitter.value !== "ok") return;
+    var title = $("fTitle").value.trim();
+    var path = $("fPath").value.trim().replace(/^\.?\//, "");
+    var collection = $("fCollection").value;
+    function bad(msg){
+      e.preventDefault();
+      $("dlgHint").className = "hint err";
+      $("dlgHint").textContent = msg;
+    }
+    if(!collection){ bad("請先按 ＋ 建立一個類別。"); return; }
+    if(!title){ bad("請填寫書名。"); return; }
+    if(!path){ bad("請先選擇電子書 HTML 檔，路徑會自動產生。"); return; }
+    var group = $("fGroup").value.trim();
+    var lang = $("fLang").value.trim();
+
+    if(editingId){
+      books.forEach(function(b){
+        if(b.id !== editingId) return;
+        b.title = title; b.path = path; b.collection = collection;
+        b.group = group; b.lang = lang;
+      });
+      save();
+      toast("已更新「" + title + "」");
+    }else{
+      books.push({
+        id: uid(), title: title, path: path, collection: collection,
+        group: group, lang: lang,
+        pages: pending ? pending.pages : 0,
+        cover: pending ? pending.cover : "",
+        hidden: false,
+        note: "new"
+      });
+      save();
+      toast("已新增「" + title + "」，記得匯出 books.json");
+    }
+    editingId = null;
+    pending = null;
+  });
+
+  /* ---------------- 匯出 / 還原 ---------------- */
+  $("exportBtn").onclick = function(){
+    var out = {
+      updated: new Date().toISOString().slice(0, 10),
+      collections: cols.map(function(c){ return { name: c.name, folder: c.folder }; }),
+      books: books.map(function(b){
+        return { id: b.id, title: b.title, group: b.group, lang: b.lang,
+                 collection: b.collection, pages: b.pages, path: b.path,
+                 cover: b.cover, hidden: !!b.hidden };
+      })
+    };
+    var blob = new Blob([JSON.stringify(out, null, 2)], { type: "application/json" });
+    var a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "books.json";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(function(){ URL.revokeObjectURL(a.href); }, 4000);
+    toast("已下載 books.json，請上傳到 GitHub 取代舊檔");
+  };
+
+  $("resetBtn").onclick = function(){
+    if(!confirm("捨棄這台電腦上的所有修改，回到網站目前的 books.json？")) return;
+    try{ localStorage.removeItem(LS_DATA); }catch(e){}
+    books = baseline.slice();
+    cols = normalizeCols(baselineCols, books);
+    dirty = false;
+    render();
+    toast("已還原");
+  };
+
+  boot();
+})();
+</script>
+</body>
+</html>

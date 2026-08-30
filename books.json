@@ -1,0 +1,224 @@
+{
+  "updated": "2026-08-30",
+  "collections": [
+    {
+      "name": "清邁慈中的故事",
+      "folder": "AI繪本-清邁慈中的故事(電子書)"
+    },
+    {
+      "name": "素食",
+      "folder": "AI繪本-素食(電子書)"
+    }
+  ],
+  "books": [
+    {
+      "id": "cm-g1",
+      "title": "慈濟學校 我們的故事",
+      "group": "第一組",
+      "lang": "",
+      "collection": "清邁慈中的故事",
+      "pages": 24,
+      "path": "AI繪本-清邁慈中的故事(電子書)/第一組_โรงเรียนของเรา เรื่องราวของเรา.html",
+      "cover": "covers/cm-g1.webp",
+      "hidden": false
+    },
+    {
+      "id": "cm-g2",
+      "title": "慈濟人文 與自然共生的智慧",
+      "group": "第二組",
+      "lang": "",
+      "collection": "清邁慈中的故事",
+      "pages": 22,
+      "path": "AI繪本-清邁慈中的故事(電子書)/第二組_慈濟人文 與自然共生的智慧.html",
+      "cover": "covers/cm-g2.webp",
+      "hidden": false
+    },
+    {
+      "id": "cm-g3",
+      "title": "慈濟小學的人文自然課",
+      "group": "第三組",
+      "lang": "",
+      "collection": "清邁慈中的故事",
+      "pages": 24,
+      "path": "AI繪本-清邁慈中的故事(電子書)/第三組.html",
+      "cover": "covers/cm-g3.webp",
+      "hidden": false
+    },
+    {
+      "id": "cm-g4",
+      "title": "從我們的雙手開始",
+      "group": "第四組",
+      "lang": "",
+      "collection": "清邁慈中的故事",
+      "pages": 28,
+      "path": "AI繪本-清邁慈中的故事(電子書)/第四組_เริ่มจากมือของเรา.html",
+      "cover": "covers/cm-g4.webp",
+      "hidden": false
+    },
+    {
+      "id": "cm-g6a",
+      "title": "เรื่องราวของพวกเราเอง",
+      "group": "第六組",
+      "lang": "泰文",
+      "collection": "清邁慈中的故事",
+      "pages": 24,
+      "path": "AI繪本-清邁慈中的故事(電子書)/第六組 our story.html",
+      "cover": "covers/cm-g6a.webp",
+      "hidden": false
+    },
+    {
+      "id": "cm-g6b",
+      "title": "我們的故事",
+      "group": "第六組",
+      "lang": "中文",
+      "collection": "清邁慈中的故事",
+      "pages": 24,
+      "path": "AI繪本-清邁慈中的故事(電子書)/GROUP 6_我們的故事.html",
+      "cover": "covers/cm-g6b.webp",
+      "hidden": false
+    },
+    {
+      "id": "veg-g1-a",
+      "title": "選擇不吃肉",
+      "group": "第一組",
+      "lang": "中泰",
+      "collection": "素食",
+      "pages": 34,
+      "path": "AI繪本-素食(電子書)/第一組_選擇不吃肉＿中泰.html",
+      "cover": "covers/veg-g1-a.webp",
+      "hidden": false
+    },
+    {
+      "id": "veg-g1-b",
+      "title": "選擇不吃肉",
+      "group": "第一組",
+      "lang": "英泰",
+      "collection": "素食",
+      "pages": 34,
+      "path": "AI繪本-素食(電子書)/第一組_選擇不吃肉＿英泰.html",
+      "cover": "covers/veg-g1-b.webp",
+      "hidden": false
+    },
+    {
+      "id": "veg-g2-a",
+      "title": "達克的健康選擇",
+      "group": "第二組",
+      "lang": "中泰",
+      "collection": "素食",
+      "pages": 34,
+      "path": "AI繪本-素食(電子書)/第二組_達克的健康選擇_中泰.html",
+      "cover": "covers/veg-g2-a.webp",
+      "hidden": false
+    },
+    {
+      "id": "veg-g2-b",
+      "title": "達克的健康選擇",
+      "group": "第二組",
+      "lang": "英泰",
+      "collection": "素食",
+      "pages": 34,
+      "path": "AI繪本-素食(電子書)/第二組_達克的健康選擇_英泰.html",
+      "cover": "covers/veg-g2-b.webp",
+      "hidden": false
+    },
+    {
+      "id": "veg-g3-a",
+      "title": "如果森林消失了",
+      "group": "第三組",
+      "lang": "中英",
+      "collection": "素食",
+      "pages": 34,
+      "path": "AI繪本-素食(電子書)/第三組_如果森林消失了_中英.html",
+      "cover": "covers/veg-g3-a.webp",
+      "hidden": false
+    },
+    {
+      "id": "veg-g3-b",
+      "title": "如果森林消失了",
+      "group": "第三組",
+      "lang": "英泰",
+      "collection": "素食",
+      "pages": 34,
+      "path": "AI繪本-素食(電子書)/第三組_如果森林消失了_英泰.html",
+      "cover": "covers/veg-g3-b.webp",
+      "hidden": false
+    },
+    {
+      "id": "veg-g4-a",
+      "title": "母山羊的勇敢選擇",
+      "group": "第四組",
+      "lang": "中泰",
+      "collection": "素食",
+      "pages": 36,
+      "path": "AI繪本-素食(電子書)/第四組_母山羊的勇敢選擇_中文泰文.html",
+      "cover": "covers/veg-g4-a.webp",
+      "hidden": false
+    },
+    {
+      "id": "veg-g4-b",
+      "title": "母山羊的勇敢選擇",
+      "group": "第四組",
+      "lang": "英泰",
+      "collection": "素食",
+      "pages": 36,
+      "path": "AI繪本-素食(電子書)/第四組_母山羊的勇敢選擇_英文泰文.html",
+      "cover": "covers/veg-g4-b.webp",
+      "hidden": false
+    },
+    {
+      "id": "veg-g5-a",
+      "title": "綠色餐盤任務",
+      "group": "第五組",
+      "lang": "中泰",
+      "collection": "素食",
+      "pages": 36,
+      "path": "AI繪本-素食(電子書)/第五組_綠色餐盤任務_中泰.html",
+      "cover": "covers/veg-g5-a.webp",
+      "hidden": false
+    },
+    {
+      "id": "veg-g5-b",
+      "title": "綠色餐盤任務",
+      "group": "第五組",
+      "lang": "英泰",
+      "collection": "素食",
+      "pages": 34,
+      "path": "AI繪本-素食(電子書)/第五組_綠色餐盤任務_英泰.html",
+      "cover": "covers/veg-g5-b.webp",
+      "hidden": false
+    },
+    {
+      "id": "veg-g6",
+      "title": "小晴的奇妙旅程",
+      "group": "第六組",
+      "lang": "中英",
+      "collection": "素食",
+      "pages": 34,
+      "path": "AI繪本-素食(電子書)/第六組_小晴的奇妙旅程_中英文.html",
+      "cover": "covers/veg-g6.webp",
+      "hidden": false
+    },
+    {
+      "id": "veg-g7-a",
+      "title": "謝謝你哦！我的身體",
+      "group": "第七組",
+      "lang": "中泰",
+      "collection": "素食",
+      "pages": 34,
+      "path": "AI繪本-素食(電子書)/第七組_謝謝你哦！我的身體_th-tw.html",
+      "cover": "covers/veg-g7-a.webp",
+      "hidden": false
+    },
+    {
+      "id": "veg-g7-b",
+      "title": "謝謝你哦！我的身體",
+      "group": "第七組",
+      "lang": "英泰",
+      "collection": "素食",
+      "pages": 34,
+      "path": "AI繪本-素食(電子書)/第七組_謝謝你哦！我的身體_eng-th.html",
+      "cover": "covers/veg-g7-b.webp",
+      "hidden": false
+    }
+  ]
+}
